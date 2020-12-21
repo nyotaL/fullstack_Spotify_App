@@ -8,6 +8,37 @@ import Input from "../input/Input";
 import Limit from "../limit/Limit";
 import RequestUtils from "../../utils/RequestUtils";
 import "./SpotifyApp.css";
+import {useHistory} from "react-router-dom";
+import {useSelector} from "react-redux";
+
+function LoginButton() {
+    const history = useHistory();
+    const user_name = useSelector(state => state.user.name);
+
+    return (
+        <div style={{position: "absolute", width: '10em', margin: '0.5em 40%'}}>
+            <button className={"btn btn-default"} onClick={() => {
+                history.push('/login');
+            }}>
+                {user_name}
+            </button>
+        </div>
+    );
+}
+
+function ToNewsButton() {
+    const history = useHistory();
+
+    return (
+        <div style={{position: "absolute", width: '10em', margin: '0.5em 50%'}}>
+            <button className={"btn btn-default"} onClick={() => {
+                history.push('/news');
+            }}>
+                News
+            </button>
+        </div>
+    );
+}
 
 export default class SpotifyApp extends Component {
 
@@ -18,7 +49,7 @@ export default class SpotifyApp extends Component {
             data: [],
             loading: false,
             pageSize: 10,
-            totalCount: 0
+            totalCount: 0,
         };
     }
 
@@ -28,6 +59,8 @@ export default class SpotifyApp extends Component {
     render() {
 
         return (<Col className="appContainer">
+                <LoginButton/>
+                <ToNewsButton/>
                 <Row>
                     <Col sm={4} style={{marginBottom: 20}}>
                         <Input loading={this.state.loading} query={this.__q} onChange={this.handleChange}/>
@@ -69,7 +102,7 @@ export default class SpotifyApp extends Component {
             return (<i className="fa fa-circle-o-notch fa-spin" aria-hidden="true"/>);
     };
 
-    __renderTableContent = ()=> {
+    __renderTableContent = () => {
         let datas = this.state.data;
         let tdArr = [];
         if (datas.length === 0) return null;
@@ -85,7 +118,7 @@ export default class SpotifyApp extends Component {
         this.__doRequest(this.__prepareSimpleData(this.__q, this.state.pageSize));
     };
 
-    handleChange = (e:object)=> {
+    handleChange = (e: object) => {
         this.__q = e.target.value.replace(/;/g, "");
 
         var delay = 700;
@@ -99,17 +132,17 @@ export default class SpotifyApp extends Component {
         }.bind(this), delay);
     };
 
-    __handlePaginationSelect = (data:object, activePage:number) => {
+    __handlePaginationSelect = (data: object, activePage: number) => {
         this.activePage = activePage;
         this.__doRequest(data)
     };
 
-    __pageSizeChange = (e:object)=> {
+    __pageSizeChange = (e: object) => {
         this.setState({pageSize: e.target.value});
         this.__doRequest(this.__prepareSimpleData(this.__q, e.target.value));
     };
 
-    __prepareSimpleData = (query:string, limit:number):object => {
+    __prepareSimpleData = (query: string, limit: number): object => {
         let offset = (this.activePage - 1) * this.state.pageSize;
         return {
             query: query,
@@ -118,13 +151,12 @@ export default class SpotifyApp extends Component {
         };
     };
 
-    __doRequest = (data:object) => {
+    __doRequest = (data: object) => {
         RequestUtils.makeRequest("search/api", "POST", data, function (xhr) {
             if (xhr.status === 200) {
                 let data = JSON.parse(xhr.responseText);
                 this.setState({data: data, loading: false, totalCount: data.tracks.total});
-            }
-            else
+            } else
                 this.setState({loading: false});
         }.bind(this));
     };
